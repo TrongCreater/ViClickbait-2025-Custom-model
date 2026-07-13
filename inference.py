@@ -113,15 +113,39 @@ class ClickbaitPredictor:
     def _load_model(self) -> ClickbaitDetector:
         cfg = self.model_config
 
+        num_sources = int(
+            cfg.get("num_sources", len(self.source_vocab))
+        )
+        
+        num_categories = int(
+            cfg.get("num_categories", len(self.category_vocab))
+        )
+        
+        if num_sources != len(self.source_vocab):
+            raise ValueError(
+                "Số source không khớp: "
+                f"config={num_sources}, "
+                f"source_vocab={len(self.source_vocab)}"
+            )
+        
+        if num_categories != len(self.category_vocab):
+            raise ValueError(
+                "Số category không khớp: "
+                f"config={num_categories}, "
+                f"category_vocab={len(self.category_vocab)}"
+            )
+        
         model = ClickbaitDetector(
-            num_sources=int(cfg["num_sources"]),
-            num_categories=int(cfg["num_categories"]),
+            num_sources=num_sources,
+            num_categories=num_categories,
             phobert_name=cfg["phobert_name"],
             cnn_channels=int(cfg["cnn_channels"]),
             hidden_dim=int(cfg["hidden_dim"]),
             meta_embed_dim=int(cfg["meta_embed_dim"]),
             dropout=float(cfg["dropout"]),
-            freeze_phobert_layers=int(cfg["freeze_phobert_layers"]),
+            freeze_phobert_layers=int(
+                cfg.get("freeze_phobert_layers", 6)
+            ),
         )
 
         checkpoint_path = self._download_file(
