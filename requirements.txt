@@ -1,0 +1,8 @@
+streamlit>=1.40,<2
+torch>=2.5,<3
+torchvision>=0.20,<1
+transformers>=4.45,<6
+huggingface-hub>=0.27,<2
+pillow>=10,<13
+sentencepiece>=0.2,<1
+safetensors>=0.4,<1
