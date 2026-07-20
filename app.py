@@ -534,14 +534,13 @@ def render_information_cards() -> None:
         ),
     ]
 
-    for icon, title, description in cards:
+    for title, description in cards:
         st.markdown(
             f"""
-            <div class="info-card">
-                <div class="info-icon">{icon}</div>
-                <div class="info-title">{title}</div>
-                <p class="info-description">{description}</p>
-            </div>
+<div class="info-card">
+<div class="info-title">{title}</div>
+<p class="info-description">{description}</p>
+</div>
             """,
             unsafe_allow_html=True,
         )
