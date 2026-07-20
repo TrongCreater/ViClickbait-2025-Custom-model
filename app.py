@@ -4,7 +4,7 @@ from pathlib import Path
 
 from config import APP_CONFIG
 from inference import ClickbaitPredictor
-
+import textwrap
 
 # =========================================================
 # PAGE CONFIG
@@ -489,8 +489,9 @@ def load_predictor() -> ClickbaitPredictor:
     )
 
 
+
 def render_hero() -> None:
-    st.markdown(
+    hero_html = textwrap.dedent(
         """
         <div class="hero-card">
             <div class="hero-badge">
@@ -514,7 +515,11 @@ def render_hero() -> None:
                 <span class="hero-tag">Sparse Attention</span>
             </div>
         </div>
-        """,
+        """
+    )
+
+    st.markdown(
+        hero_html,
         unsafe_allow_html=True,
     )
 
@@ -522,19 +527,16 @@ def render_hero() -> None:
 def render_information_cards() -> None:
     cards = [
         (
-            "📝",
             "Phân tích văn bản",
             "Mô hình đánh giá tiêu đề và đoạn mở đầu "
             "để phát hiện ngôn ngữ gây tò mò hoặc phóng đại.",
         ),
         (
-            "🖼️",
             "Phân tích thumbnail",
             "ResNet50 trích xuất đặc trưng hình ảnh và "
             "kết hợp với thông tin văn bản.",
         ),
         (
-            "🧠",
             "Kết hợp đa phương thức",
             "Nguồn báo, chuyên mục, văn bản và hình ảnh "
             "được tổng hợp để đưa ra dự đoán.",
