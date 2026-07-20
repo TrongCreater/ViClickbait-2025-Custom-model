@@ -589,11 +589,6 @@ def render_hero() -> None:
 
 <h1 class="hero-title">Vietnamese Clickbait Detector</h1>
 
-<p class="hero-description">
-Phân tích tiêu đề, nội dung mở đầu, ảnh thumbnail và metadata
-của bài báo để nhận diện dấu hiệu clickbait trong tin tức tiếng Việt.
-</p>
-
 <div class="hero-tags">
 <span class="hero-tag">PhoBERT</span>
 <span class="hero-tag">ResNet50</span>
