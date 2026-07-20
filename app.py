@@ -251,6 +251,10 @@ def load_custom_css() -> None:
             font-size: 1.05rem;
             line-height: 1.7;
         }
+        .hero-card,
+        .hero-card * {
+            color: #ffffff !important;
+        }
 
         .hero-tags {
             position: relative;
