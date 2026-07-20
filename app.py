@@ -678,7 +678,7 @@ render_hero()
 # =========================================================
 # MODEL CONFIG VALIDATION
 # =========================================================
-if APP_CONFIG.hf_repo_id.startswith("YOUR_HF_USERNAME/"):
+if AppConfig.hf_repo_id.startswith("YOUR_HF_USERNAME/"):
     st.error(
         "Bạn chưa cấu hình `HF_REPO_ID` trong file `config.py`."
     )
