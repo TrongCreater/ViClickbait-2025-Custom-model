@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import gc
 import json
-from pathlib import Path
 from typing import Any
 
 import torch
@@ -112,29 +112,28 @@ class ClickbaitPredictor:
 
     def _load_model(self) -> ClickbaitDetector:
         cfg = self.model_config
-
+    
         num_sources = int(
             cfg.get("num_sources", len(self.source_vocab))
         )
-        
         num_categories = int(
             cfg.get("num_categories", len(self.category_vocab))
         )
-        
+    
         if num_sources != len(self.source_vocab):
             raise ValueError(
                 "Số source không khớp: "
                 f"config={num_sources}, "
                 f"source_vocab={len(self.source_vocab)}"
             )
-        
+    
         if num_categories != len(self.category_vocab):
             raise ValueError(
                 "Số category không khớp: "
                 f"config={num_categories}, "
                 f"category_vocab={len(self.category_vocab)}"
             )
-        
+    
         model = ClickbaitDetector(
             num_sources=num_sources,
             num_categories=num_categories,
@@ -147,22 +146,49 @@ class ClickbaitPredictor:
                 cfg.get("freeze_phobert_layers", 6)
             ),
         )
-
+    
         checkpoint_path = self._download_file(
             APP_CONFIG.checkpoint_filename
         )
+    
         checkpoint = self._load_checkpoint(checkpoint_path)
         state_dict = self._extract_state_dict(checkpoint)
-
-        # Hỗ trợ checkpoint được lưu từ DataParallel.
+    
+        # Bỏ prefix DataParallel nhưng không sao chép tensor.
         cleaned_state_dict = {
             key.removeprefix("module."): value
             for key, value in state_dict.items()
         }
-
-        model.load_state_dict(cleaned_state_dict, strict=True)
+    
+        try:
+            # assign=True giúp hạn chế sao chép trọng số vào model,
+            # giảm đáng kể đỉnh RAM lúc khởi động.
+            model.load_state_dict(
+                cleaned_state_dict,
+                strict=True,
+                assign=True,
+            )
+        except TypeError:
+            # Dự phòng cho phiên bản PyTorch cũ.
+            model.load_state_dict(
+                cleaned_state_dict,
+                strict=True,
+            )
+    
+        # Xóa checkpoint khỏi RAM ngay sau khi nạp model.
+        del cleaned_state_dict
+        del state_dict
+        del checkpoint
+    
+        gc.collect()
+    
         model.to(self.device)
         model.eval()
+    
+        # Không cần gradient khi deploy.
+        for parameter in model.parameters():
+            parameter.requires_grad_(False)
+    
         return model
 
     def get_sources(self) -> list[str]:
@@ -198,6 +224,7 @@ class ClickbaitPredictor:
             return torch.zeros((3, 224, 224), dtype=torch.float32)
 
     @torch.inference_mode()
+    @torch.inference_mode()
     def predict(
         self,
         title: str,
@@ -208,15 +235,14 @@ class ClickbaitPredictor:
     ) -> dict[str, Any]:
         title = title.strip()
         lead = lead.strip()
-
+    
         if not title:
             raise ValueError("Tiêu đề không được để trống.")
-
-        # Giữ đúng preprocessing lúc train.
+    
         text_input = (
             f"{title} {self.tokenizer.sep_token} {lead}"
         )
-
+    
         encoded = self.tokenizer(
             text_input,
             add_special_tokens=True,
@@ -225,32 +251,44 @@ class ClickbaitPredictor:
             truncation=True,
             return_tensors="pt",
         )
-
+    
         image_tensor = self._prepare_image(image).unsqueeze(0)
-
+    
         source_id = self.source_vocab.get(str(source), 0)
         category_id = self.category_vocab.get(str(category), 0)
-
-        logits, attention = self.model(
-            input_ids=encoded["input_ids"].to(self.device),
-            attention_mask=encoded["attention_mask"].to(self.device),
-            images=image_tensor.to(self.device),
-            source_ids=torch.tensor(
-                [source_id],
-                dtype=torch.long,
-                device=self.device,
-            ),
-            category_ids=torch.tensor(
-                [category_id],
-                dtype=torch.long,
-                device=self.device,
-            ),
+    
+        source_tensor = torch.tensor(
+            [source_id],
+            dtype=torch.long,
+            device=self.device,
         )
-
+    
+        category_tensor = torch.tensor(
+            [category_id],
+            dtype=torch.long,
+            device=self.device,
+        )
+    
+        input_ids = encoded["input_ids"].to(self.device)
+        attention_mask = encoded["attention_mask"].to(self.device)
+        image_tensor = image_tensor.to(self.device)
+    
+        logits, attention = self.model(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            images=image_tensor,
+            source_ids=source_tensor,
+            category_ids=category_tensor,
+        )
+    
         probability = torch.sigmoid(logits)[0].item()
-        predicted_id = int(probability >= APP_CONFIG.threshold)
-
-        return {
+        predicted_id = int(
+            probability >= APP_CONFIG.threshold
+        )
+    
+        attention_shape = list(attention.shape)
+    
+        result = {
             "label_id": predicted_id,
             "label": (
                 "clickbait"
@@ -258,8 +296,24 @@ class ClickbaitPredictor:
                 else "non-clickbait"
             ),
             "clickbait_probability": float(probability),
-            "non_clickbait_probability": float(1.0 - probability),
+            "non_clickbait_probability": float(
+                1.0 - probability
+            ),
             "source_id": int(source_id),
             "category_id": int(category_id),
-            "attention_shape": list(attention.shape),
+            "attention_shape": attention_shape,
         }
+    
+        # Giải phóng tensor trung gian.
+        del encoded
+        del input_ids
+        del attention_mask
+        del image_tensor
+        del source_tensor
+        del category_tensor
+        del logits
+        del attention
+    
+        gc.collect()
+    
+        return result
