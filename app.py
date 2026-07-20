@@ -2,7 +2,7 @@ import streamlit as st
 from PIL import Image
 from pathlib import Path
 
-from config import APPCONFIGS
+from config import AppConfig
 from inference import ClickbaitPredictor
 
 # =========================================================
