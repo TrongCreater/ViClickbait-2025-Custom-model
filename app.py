@@ -247,7 +247,7 @@ def load_custom_css() -> None:
             max-width: 760px;
             margin-top: 1rem;
             margin-bottom: 0;
-            color: rgba(255, 255, 255, 0.84);
+            color: #ffffff !important;
             font-size: 1.05rem;
             line-height: 1.7;
         }
