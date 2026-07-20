@@ -491,35 +491,26 @@ def load_predictor() -> ClickbaitPredictor:
 
 
 def render_hero() -> None:
-    hero_html = textwrap.dedent(
-        """
-        <div class="hero-card">
-            <div class="hero-badge">
-                ✦ AI-POWERED NEWS ANALYSIS
-            </div>
-
-            <h1 class="hero-title">
-                Vietnamese Clickbait Detector
-            </h1>
-
-            <p class="hero-description">
-                Phân tích tiêu đề, nội dung mở đầu, ảnh thumbnail và
-                metadata của bài báo để nhận diện dấu hiệu clickbait
-                trong tin tức tiếng Việt.
-            </p>
-
-            <div class="hero-tags">
-                <span class="hero-tag">PhoBERT</span>
-                <span class="hero-tag">ResNet50</span>
-                <span class="hero-tag">Multimodal Learning</span>
-                <span class="hero-tag">Sparse Attention</span>
-            </div>
-        </div>
-        """
-    )
-
     st.markdown(
-        hero_html,
+        """
+<div class="hero-card">
+<div class="hero-badge">✦ AI-POWERED NEWS ANALYSIS</div>
+
+<h1 class="hero-title">Vietnamese Clickbait Detector</h1>
+
+<p class="hero-description">
+Phân tích tiêu đề, nội dung mở đầu, ảnh thumbnail và metadata
+của bài báo để nhận diện dấu hiệu clickbait trong tin tức tiếng Việt.
+</p>
+
+<div class="hero-tags">
+<span class="hero-tag">PhoBERT</span>
+<span class="hero-tag">ResNet50</span>
+<span class="hero-tag">Multimodal Learning</span>
+<span class="hero-tag">Sparse Attention</span>
+</div>
+</div>
+        """,
         unsafe_allow_html=True,
     )
 
