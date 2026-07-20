@@ -4,7 +4,6 @@ from pathlib import Path
 
 from config import APP_CONFIG
 from inference import ClickbaitPredictor
-import textwrap
 
 # =========================================================
 # PAGE CONFIG
@@ -38,7 +37,8 @@ def load_custom_css() -> None:
         /* =========================
            GLOBAL
         ========================= */
-        .stApp {
+        .stApp,
+        [data-testid="stAppViewContainer"] {
             background:
                 radial-gradient(
                     circle at top left,
@@ -55,7 +55,7 @@ def load_custom_css() -> None:
                     #f8fafc 0%,
                     #eef2ff 48%,
                     #f0f9ff 100%
-                );
+                ) !important;
         }
 
         .block-container {
@@ -64,12 +64,97 @@ def load_custom_css() -> None:
             padding-bottom: 4rem;
         }
 
-        h1, h2, h3 {
-            font-family: Inter, Arial, sans-serif;
+        :root {
+            color-scheme: light;
         }
 
-        p, label, div {
-            font-family: Inter, Arial, sans-serif;
+        html,
+        body,
+        .stApp,
+        [data-testid="stAppViewContainer"],
+        button,
+        input,
+        textarea,
+        select {
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif !important;
+        }
+
+        .stApp,
+        [data-testid="stAppViewContainer"] {
+            color: #0f172a !important;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                Roboto,
+                Helvetica,
+                Arial,
+                sans-serif !important;
+        }
+
+        /* Keep custom cards consistent on every browser/theme */
+        .hero-card,
+        .hero-card * {
+            color: #ffffff !important;
+        }
+
+        .info-card,
+        .info-card .info-title {
+            color: #0f172a !important;
+        }
+
+        .info-card .info-description {
+            color: #64748b !important;
+        }
+
+        .section-title {
+            color: #0f172a !important;
+        }
+
+        .section-description {
+            color: #64748b !important;
+        }
+
+        .result-clickbait *,
+        .result-safe *,
+        .result-wrapper * {
+            color: #0f172a;
+        }
+
+        /* Streamlit labels and field text */
+        [data-testid="stWidgetLabel"] p,
+        [data-testid="stMarkdownContainer"] p,
+        .stTextInput label,
+        .stTextArea label,
+        .stSelectbox label,
+        .stFileUploader label {
+            color: #0f172a !important;
+        }
+
+        .stTextInput input,
+        .stTextArea textarea,
+        div[data-baseweb="select"] > div {
+            color: #0f172a !important;
+        }
+
+        .stTextInput input::placeholder,
+        .stTextArea textarea::placeholder {
+            color: #94a3b8 !important;
+            opacity: 1 !important;
+        }
+
+        div[data-baseweb="select"] span {
+            color: #0f172a !important;
         }
 
         /* =========================
@@ -232,7 +317,8 @@ def load_custom_css() -> None:
         .stTextArea textarea {
             border: 1px solid #dbeafe !important;
             border-radius: 13px !important;
-            background: #f8fafc !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
             transition: all 0.2s ease;
         }
 
@@ -246,7 +332,8 @@ def load_custom_css() -> None:
         div[data-baseweb="select"] > div {
             border-color: #dbeafe !important;
             border-radius: 13px !important;
-            background: #f8fafc !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
         }
 
         section[data-testid="stFileUploaderDropzone"] {
@@ -573,14 +660,10 @@ def render_result_status(
 
     st.markdown(
         f"""
-        <div class="{status_class}">
-            <h3 class="result-status-title">
-                {icon} {title}
-            </h3>
-            <p class="result-status-description">
-                {description}
-            </p>
-        </div>
+<div class="{status_class}">
+<h3 class="result-status-title">{icon} {title}</h3>
+<p class="result-status-description">{description}</p>
+</div>
         """,
         unsafe_allow_html=True,
     )
